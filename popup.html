@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>双语翻译</title><link rel="stylesheet" href="popup.css"></head>
+<body><header><span class="logo">译</span><div><h1>双语翻译 <small>BETA</small></h1><p>读原文，也读懂世界</p></div></header>
+<main>
+<button id="engine-settings" type="button">翻译引擎设置</button>
+<button id="open-text" class="primary" type="button">打开文本翻译</button><p>输入或粘贴文字，查看并复制译文。</p>
+<label>翻译引擎<select id="engine"><option value="microsoft">Microsoft 微软翻译</option><option value="google">Google 谷歌翻译</option><option value="openai">OpenAI / 兼容接口</option><option value="anthropic">Anthropic Claude</option></select></label>
+<label>网页 / 划词译为<select id="target"></select></label>
+<label class="check"><input id="bypass-cache" type="checkbox">忽略缓存重新翻译网页</label><div class="actions"><button id="page" class="primary">开启双语网页</button><button id="restore">还原网页</button></div>
+<section><h2>翻译网页输入框</h2><label>输入内容译为<select id="inputTarget"></select></label><p>点击网页输入框，再点右下角「翻译网页输入框」。预览后可替换或撤销。</p></section>
+<label class="check"><input id="selection" type="checkbox">选中文字时显示翻译按钮</label>
+<button id="show-floating" type="button">恢复此网站悬浮按钮</button>
+<p id="status" role="status" aria-live="polite"></p>
+<footer>文字仅在触发翻译后发送至所选服务。AI 服务需在引擎设置中填写自己的 API Key。</footer>
+</main><script src="core.js"></script><script src="popup.js"></script></body></html>

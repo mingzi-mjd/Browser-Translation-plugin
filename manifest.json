@@ -1,0 +1,46 @@
+{
+  "manifest_version": 3,
+  "name": "双语翻译",
+  "version": "0.0.1",
+  "description": "Google、Microsoft、OpenAI、Anthropic 双语网页与文本翻译。",
+  "permissions": [
+    "storage",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "https://translate.googleapis.com/*",
+    "https://edge.microsoft.com/*",
+    "https://api.openai.com/*",
+    "https://api.anthropic.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "双语翻译"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "http://*/*",
+        "https://*/*"
+      ],
+      "js": [
+        "core.js",
+        "text-translator.js",
+        "floating.js",
+        "content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "optional_host_permissions": [
+    "https://*/*",
+    "http://*/*"
+  ],
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  }
+}
