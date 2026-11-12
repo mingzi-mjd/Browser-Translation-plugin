@@ -44,3 +44,20 @@ $("open-text").onclick = async () => {
 };
 
 $("engine-settings").onclick = () => api.runtime.openOptionsPage().catch(() => status("无法打开引擎设置", true));
+$("open-listen").onclick = async () => {
+  try {
+    const [tab] = await api.tabs.query({ active: true, currentWindow: true });
+    const result = await api.runtime.sendMessage({ type: "listen-open", tabId: tab?.id });
+    if (!result?.ok) throw new Error(result?.error || "打开失败");
+  } catch (error) { status(error.message, true); }
+};
+api.runtime.sendMessage({ type: "listen-buffer-info" }).then(result => { $("buffer-authorize").hidden = !result?.available; }).catch(() => {});
+$("buffer-authorize").onclick = async () => {
+  $("buffer-authorize").disabled = true;
+  try {
+    const result = await api.runtime.sendMessage({ type: "listen-buffer-authorize" });
+    if (!result?.ok) throw new Error(result?.error || "无法开始");
+    status("已授权后台识别，请返回前台或控制窗口查看缓冲进度");
+  } catch (error) { status(error.message, true); }
+  finally { $("buffer-authorize").disabled = false; }
+};

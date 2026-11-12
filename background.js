@@ -1,5 +1,6 @@
 /* global TranslatorCore */
 if (typeof importScripts === "function") importScripts("core.js", "ai-provider.js", "translation-cache.js");
+if (typeof importScripts === "function") importScripts("listen-background.js");
 const api = globalThis.browser || globalThis.chrome;
 let active = 0;
 const waiting = [];

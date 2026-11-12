@@ -5,7 +5,8 @@
   "description": "Google、Microsoft、OpenAI、Anthropic 双语网页与文本翻译。",
   "permissions": [
     "storage",
-    "activeTab"
+    "activeTab",
+    "tabCapture"
   ],
   "host_permissions": [
     "https://translate.googleapis.com/*",
@@ -40,6 +41,8 @@
       ],
       "js": [
         "core.js",
+        "listen-overlay.js",
+        "buffer-player.js",
         "video-subtitles.js",
         "text-translator.js",
         "floating.js",

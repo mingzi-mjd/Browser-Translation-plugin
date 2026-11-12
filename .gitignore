@@ -1,3 +1,7 @@
 node_modules/
 dist/
 tests/artifacts/
+local-asr/.venv/
+local-asr/models/
+__pycache__/
+*.pyc

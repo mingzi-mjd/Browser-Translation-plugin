@@ -1,0 +1,17 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>提前缓冲听译</title><link rel="stylesheet" href="options.css"><style>progress{width:100%}button{margin:4px}#status{white-space:pre-wrap}#preview{white-space:pre-wrap}</style></head><body><main>
+<h1>提前缓冲听译 · 实验模式</h1><p>后台页播放并识别，前台按视频时间显示字幕。仅支持顶层页面中单个可见、可跳转的普通视频。</p>
+<p>使用实时听译窗口中保存的语音识别和翻译配置。开始前请确认两页都是同一视频，并关闭网站已有字幕翻译，避免字幕重叠。</p>
+<fieldset id="settings"><label>启动 / 恢复前准备的字幕<select id="lead"><option value="5">5 秒</option><option value="10" selected>10 秒</option><option value="15">15 秒</option></select></label>
+<label>后台播放速度<select id="speed"><option value="1">1×</option><option value="1.25">1.25×</option><option value="1.5">1.5×</option><option value="2" selected>2×（实验）</option></select></label>
+<label>最多提前采集<select id="capacity"><option value="1">1 分钟</option><option value="3" selected>3 分钟</option><option value="5">5 分钟</option></select></label>
+</fieldset><label class="check"><input id="auto-pause" type="checkbox" checked>字幕缓冲不足时自动暂停前台，准备好后继续（运行中可随时关闭）</label>
+<button id="prepare" class="primary">1. 打开后台识别页</button><button id="stop" disabled>停止并关闭后台页</button><button id="return">返回前台观看页</button>
+<button id="live">返回实时听译</button>
+<p>2. 在新打开的后台视频页等待播放器就绪，必要时手动播放片刻。点击浏览器工具栏的插件按钮，再点「用此页提前识别」。开始采集后，请勿手动操作后台播放器。</p>
+<p>初次会暂停前台等待字幕。后台页不播放声音给你；请保持本控制窗口和后台页打开。手动暂停前台时不会自动恢复，拖动进度或改变倍速会重新缓冲。停止后自动关闭由插件创建的后台页。</p>
+<p>后台连续播放和采集，同时处理已采集的音频；只有待处理队列已满或已经提前足够远时才暂停后台。关闭自动暂停后，初次缓冲完成后的前台视频会继续播放，字幕来不及时可能暂时空缺。</p>
+<p>后台倍速不改变前台速度，字幕时间戳会自动换算。2× 采集会把语音加快，识别效果不佳时请降低倍速。容量为原视频时长，待处理队列同步扩大；达到上限后等待消耗至约一半再继续，减少反复启停。加大容量不会加快识别服务。倍速和容量在开始前设置。</p>
+<p>前台字幕栏的「−0.5s / +0.5s」分别让字幕提前 / 延后显示，每次调整半秒，可重置；仅调整本次提前缓冲会话，范围为 ±30 秒。</p>
+<p id="status" role="status">准备就绪</p><progress id="progress" value="0" max="10"></progress><p id="preview"></p>
+<p>此模式增加视频解码和网络开销，不能弥补长期低于播放速度的识别性能。不支持直播、跨域 iframe、原生视频全屏字幕、独立广告时间轴及播放器替换。无法控制时请停止并使用实时听译。</p>
+</main><script src="buffer.js"></script></body></html>
