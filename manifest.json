@@ -22,12 +22,25 @@
   },
   "content_scripts": [
     {
+      "matches": ["https://www.youtube.com/*"],
+      "js": ["youtube-bridge.js"],
+      "run_at": "document_start",
+      "world": "MAIN"
+    },
+    {
+      "matches": ["https://www.bilibili.com/*"],
+      "js": ["bilibili-bridge.js"],
+      "run_at": "document_start",
+      "world": "MAIN"
+    },
+    {
       "matches": [
         "http://*/*",
         "https://*/*"
       ],
       "js": [
         "core.js",
+        "video-subtitles.js",
         "text-translator.js",
         "floating.js",
         "content.js"

@@ -6,7 +6,7 @@
   const core = globalThis.TranslatorCore;
   let settings = core.settings();
   const ready = api.storage.local.get("settings").then(data => { settings = core.settings(data.settings); });
-  const ignored = 'script,style,noscript,code,pre,textarea,input,select,button,svg,math,[contenteditable]:not([contenteditable="false"]),[translate="no"],.notranslate,[data-light-translator]';
+  const ignored = 'script,style,noscript,code,pre,textarea,input,select,button,svg,math,.ytp-caption-window-container,.bpx-player-subtitle-wrap,.bilibili-player-video-subtitle,[contenteditable]:not([contenteditable="false"]),[translate="no"],.notranslate,[data-light-translator]';
   const host = document.createElement("div");
   host.dataset.lightTranslator = "ui";
   const shadow = host.attachShadow({ mode: "open" });

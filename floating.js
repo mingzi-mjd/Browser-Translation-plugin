@@ -18,6 +18,7 @@ globalThis.mountTranslationFloat = function ({ shadow, api, core, ready, getSett
     <label>翻译引擎<select id="float-engine"><option value="microsoft">Microsoft 微软翻译</option><option value="google">Google 谷歌翻译</option><option value="openai">OpenAI / 兼容接口</option><option value="anthropic">Anthropic Claude</option></select></label>
     <button id="float-engine-settings">翻译引擎设置</button><label>网页 / 划词译为<select id="float-target"></select></label>
     <label class="float-check"><input id="float-bypass-cache" type="checkbox">忽略缓存重新翻译</label><div class="float-actions"><button id="float-start" class="primary">开启双语网页</button><button id="float-stop">还原网页</button></div>
+    <button id="float-subtitles" hidden>视频字幕翻译</button>
     <label>翻译网页输入框 · 译为<select id="float-inputTarget"></select></label>
     <label class="float-check"><input id="float-selection" type="checkbox">显示划词翻译按钮</label>
     <p>选中文字点「译选中」；点击网页上的搜索框、评论框后点「翻译网页输入框」，预览后替换。</p>
@@ -26,6 +27,11 @@ globalThis.mountTranslationFloat = function ({ shadow, api, core, ready, getSett
   shadow.append(template.content);
   const $ = id => shadow.getElementById("float-" + id);
   const button = $("button"), panel = $("panel");
+  if (globalThis.VideoSubtitles) {
+    $("subtitles").hidden = false;
+    $("subtitles").textContent = "视频字幕翻译 · " + globalThis.VideoSubtitles.siteName;
+    $("subtitles").onclick = () => { close(); globalThis.VideoSubtitles.open(); };
+  }
   globalThis.mountTextTranslator($("text-section"), api, core);
   function switchSection(section) {
     for (const name of ["text", "web"]) {
