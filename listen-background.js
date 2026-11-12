@@ -38,7 +38,14 @@
           if (control) { await extension.windows.update(control.windowId, { focused: true }); return { ok: true }; }
           await extension.storage.session.remove("listenSession");
         }
-        await extension.windows.create({ url: page("listen.html") + "?tab=" + tabId, type: "popup", width: 620, height: 820 });
+        const controlWindow = { url: page("listen.html") + "?tab=" + tabId, type: "popup", width: 620, height: 820 };
+        if (tab.incognito) controlWindow.incognito = true;
+        try {
+          await extension.windows.create(controlWindow);
+        } catch (error) {
+          if (tab.incognito) throw new Error("无法在无痕窗口打开听译页。请在 chrome://extensions 的扩展详情中开启「允许在无痕模式下运行」后重试。");
+          throw error;
+        }
         return { ok: true };
       }
       if (msg.type === "listen-claim") {
@@ -57,7 +64,9 @@
           try {
             const original = await extension.tabs.get(target);
             // Create muted, then navigate so autoplay cannot leak duplicate sound.
-            const source = await extension.tabs.create({ url: "about:blank", active: true });
+            const sourceOptions = { url: "about:blank", active: true };
+            if (Number.isInteger(original.windowId)) sourceOptions.windowId = original.windowId;
+            const source = await extension.tabs.create(sourceOptions);
             value.source = source.id; value.sourceReady = false;
             await extension.tabs.update(source.id, { muted: true });
             await extension.storage.session.set({ listenSession: value });

@@ -1,6 +1,6 @@
 # Windows 原生语音识别服务
 
-使用 faster-whisper，在 Windows 本机提供插件所需的 HTTP 接口。无需 Docker、WSL 或单独安装 FFmpeg；CPU 模式不需要 CUDA。该服务只负责语音转文字，译文仍由插件现有翻译引擎生成。
+使用 faster-whisper 或 whisper.cpp，在 Windows 本机提供插件所需的 HTTP 接口。无需 Docker、WSL 或单独安装 FFmpeg；CPU 模式不需要 CUDA，AMD / Intel 显卡可使用 Vulkan 后端。该服务只负责语音转文字，译文仍由插件现有翻译引擎生成。
 
 ## 第一次安装
 
@@ -9,7 +9,7 @@
 3. 安装完成后双击 **start.cmd**。首次启动会下载 `Systran/faster-whisper-small`，保存在此目录的 `models`；需要访问 Hugging Face 并等待下载完成。
 4. 控制台显示 **READY** 后再开启插件听译。保持服务窗口打开，Ctrl+C 停止服务。以后只需运行 start.cmd。
 
-这次交付没有执行安装、下载、启动或测试，需要你在本机验证。识别速度取决于电脑和模型；CPU 模式不保证能跟上实时播放。
+CPU 模式仍需按你的电脑实测，识别速度取决于处理器和模型，不保证能跟上实时播放。AMD / Intel 显卡可使用下方的 Vulkan 后端；本项目已在 RX 9070 XT 上完成实测。
 
 ## 插件怎么填写
 
@@ -50,11 +50,60 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\start.ps1 -Device cuda -Co
 
 自定义本地模型目录必须是 faster-whisper 支持的 CTranslate2 格式，不能使用 whisper.cpp 的 GGML 模型。GPU 依赖请参考 [faster-whisper 官方说明](https://github.com/SYSTRAN/faster-whisper#gpu)，脚本不会自动安装 GPU 驱动或运行库。CPU 默认使用 `int8`。
 
+## AMD / Intel GPU（Vulkan）
+
+上面的 `-Device cuda` 只适用于 NVIDIA CUDA。AMD 显卡（已在 Radeon RX 9070 XT / Windows 10 22H2 实测）或 Intel 显卡可使用 whisper.cpp 的 Vulkan 后端，不需要 CUDA 或 ROCm。
+
+首次在其他机器使用时，双击 **install-whispercpp.cmd** 下载 Windows Vulkan 包和 `ggml-small.bin`；脚本会校验 SHA256。需要 64 位 Python 3.10–3.12，代理只使用标准库。当前本机已经准备好，可直接跳过安装步骤。
+
+双击 **start-whispercpp.cmd**；不要和 `start.cmd` 同时运行，二者都会占用 8000 端口。它会：
+
+1. 在 `127.0.0.1:8080` 启动 `whisper-server.exe`，使用 Vulkan GPU。
+2. 在 `127.0.0.1:8000` 启动兼容 `/v1` 的本地代理，补齐 `/v1/models`、`/health`、CORS 和可选 Bearer 认证。
+3. 控制台出现 `READY` 后，在插件中填写：
+
+| 项目 | 值 |
+| --- | --- |
+| 基础地址 | `http://127.0.0.1:8000/v1` |
+| 模型 ID | `whisper-small` |
+| API Key | 留空，除非设置 `LOCAL_ASR_API_KEY` |
+| 原语言 | 自动识别，或手动指定 |
+| 分段 | 2 秒 |
+
+实测（RX 9070 XT，`ggml-small.bin`；首次请求包含预热约 1.5 秒，预热后如下）：
+
+- 11 秒英文音频：约 0.12 秒（预热后）
+- 2 秒英文分段：约 0.06 秒
+- 6.1 秒中文音频：约 0.10 秒
+
+中文可能输出繁体字，这是 Whisper 模型行为，不影响后续翻译。需要更稳定的简体输出时，可加启动参数：
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\start-whispercpp.ps1 -Prompt '以下是普通话的句子，请使用简体中文。'
+```
+
+切换模型：
+
+```powershell
+# 先下载 https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-v3-turbo.bin
+powershell -NoProfile -ExecutionPolicy Bypass -File .\start-whispercpp.ps1 `
+  -Model .\models\ggml-large-v3-turbo.bin -ModelId whisper-large-v3-turbo
+```
+
+安装脚本默认只校验 `ggml-small.bin`；换用其他模型时请手动下载并核对来源，或修改脚本中的 `ModelUrl` / `ModelSha256`。
+
+其他参数：`-Port` 改代理端口，`-UpstreamPort` 改 whisper-server 端口，`-Threads` 改 CPU 线程数，`-Language` 改服务默认语言，`-Binary` 指定自定义 `whisper-server.exe`。两个服务都只监听回环地址，不要将端口暴露到局域网。
+
+Vulkan 包是未签名的社区 Windows 构建，安装脚本会校验固定 SHA256；长期使用建议按 [whisper.cpp 官方说明](https://github.com/ggml-org/whisper.cpp#vulkan-gpu-support) 使用 `cmake -B build -DGGML_VULKAN=1` 自行构建，并通过 `-Binary` 指向自己的程序。
+
 可选开启认证，环境变量只对当前 PowerShell 及其子进程生效：
 
 ```powershell
 $env:LOCAL_ASR_API_KEY = '替换为你自己设置的密钥'
 powershell -NoProfile -ExecutionPolicy Bypass -File .\start.ps1
+
+# Vulkan 代理同样读取这个环境变量
+powershell -NoProfile -ExecutionPolicy Bypass -File .\start-whispercpp.ps1
 ```
 
 然后在插件语音识别配置中填写相同 Key。不要将密钥写入仓库。
@@ -78,6 +127,9 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\start.ps1
 - **端口被占用**：停止原先的 Speaches / 识别服务，或用 `-Port 8001` 并同步修改插件地址。
 - **模型 404**：点击插件「获取可用模型」，选择服务列出的完整 ID。
 - **缺少 DLL / GPU 初始化失败**：先恢复 CPU 默认参数；按官方说明配置 CUDA，部分 Windows 环境也需要 Microsoft Visual C++ 运行库。
+- **AMD 显卡提示 CUDA 不可用**：不要用 `start.ps1 -Device cuda`，改用 `start-whispercpp.cmd`。
+- **Vulkan 启动失败**：更新显卡驱动，确认 `vulkaninfo --summary` 能看到显卡；仍失败可尝试在启动参数中给 `whisper-server` 加 `-nfa` 关闭 flash attention。
+- **Vulkan 端口冲突**：先停止旧的 CPU / CUDA 服务；默认代理用 8000，whisper-server 用 8080。
 - **429 / 超时**：等待前一个推理结束，换较小模型或 GPU 后再试。暂停、拖动视频后可能有旧请求仍在后台推理。
 
-本项目独立实现 HTTP 包装层，运行时依赖 [faster-whisper](https://github.com/SYSTRAN/faster-whisper)（MIT）及其依赖，各自许可证适用。
+本项目独立实现 HTTP 包装层。faster-whisper 后端依赖 [faster-whisper](https://github.com/SYSTRAN/faster-whisper)（MIT）；Vulkan 后端依赖 [whisper.cpp](https://github.com/ggml-org/whisper.cpp)（MIT）。各自许可证适用。

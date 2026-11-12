@@ -85,7 +85,7 @@ api.runtime.onMessage.addListener((message, sender, respond) => {
   return true;
 });
 
-async function openTextPage(message) {
+async function openTextPage(message, sender) {
   if (message.text !== undefined && (typeof message.text !== "string" || message.text.length > 4000)) throw new Error("原文最多 4000 字符");
   let key;
   try {
@@ -96,7 +96,10 @@ async function openTextPage(message) {
       await api.storage.session.set({ [key]: { text: message.text, engine: message.engine, target: message.target } });
       url += "?draft=" + token;
     }
-    await api.tabs.create({ url });
+    const create = { url };
+    const windowId = Number.isInteger(message.windowId) ? message.windowId : sender?.tab?.windowId;
+    if (Number.isInteger(windowId)) create.windowId = windowId;
+    await api.tabs.create(create);
   } catch (error) {
     if (key) await api.storage.session.remove(key);
     throw error;
@@ -104,14 +107,17 @@ async function openTextPage(message) {
 }
 api.runtime.onMessage.addListener((message, sender, respond) => {
   if (sender.id !== api.runtime.id || message?.type !== "open-text-page") return false;
-  openTextPage(message).then(() => respond({ ok: true }), () => respond({ ok: false, error: "无法打开翻译页面，请重试" }));
+  openTextPage(message, sender).then(() => respond({ ok: true }), () => respond({ ok: false, error: "无法打开翻译页面，请重试" }));
   return true;
 });
 
 api.runtime.onMessage.addListener((message, sender, respond) => {
   if (sender.id !== api.runtime.id) return false;
   if (message?.type === "open-engine-settings") {
-    api.runtime.openOptionsPage().then(() => respond({ ok: true }), () => respond({ ok: false, error: "无法打开引擎设置" }));
+    const options = sender.tab?.incognito && Number.isInteger(sender.tab.windowId)
+      ? api.tabs.create({ url: api.runtime.getURL("options.html"), windowId: sender.tab.windowId })
+      : api.runtime.openOptionsPage();
+    options.then(() => respond({ ok: true }), () => respond({ ok: false, error: "无法打开引擎设置" }));
     return true;
   }
   if (!["ai-get", "ai-save", "ai-remove", "ai-list-models"].includes(message?.type)) return false;

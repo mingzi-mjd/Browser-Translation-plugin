@@ -1,5 +1,5 @@
 <!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>提前缓冲听译</title><link rel="stylesheet" href="options.css"><style>progress{width:100%}button{margin:4px}#status{white-space:pre-wrap}#preview{white-space:pre-wrap}</style></head><body><main>
-<h1>提前缓冲听译 · 实验模式</h1><p>后台页播放并识别，前台按视频时间显示字幕。仅支持顶层页面中单个可见、可跳转的普通视频。</p>
+<h1>提前缓冲听译 · 实验模式</h1><p>后台页播放并识别，前台按视频时间显示字幕。顶层页面有多个视频时会自动选择面积最大的可播放主视频；iframe 内视频仍请使用实时听译。</p>
 <p>使用实时听译窗口中保存的语音识别和翻译配置。开始前请确认两页都是同一视频，并关闭网站已有字幕翻译，避免字幕重叠。</p>
 <fieldset id="settings"><label>启动 / 恢复前准备的字幕<select id="lead"><option value="5">5 秒</option><option value="10" selected>10 秒</option><option value="15">15 秒</option></select></label>
 <label>后台播放速度<select id="speed"><option value="1">1×</option><option value="1.25">1.25×</option><option value="1.5">1.5×</option><option value="2" selected>2×（实验）</option></select></label>
@@ -13,5 +13,5 @@
 <p>后台倍速不改变前台速度，字幕时间戳会自动换算。2× 采集会把语音加快，识别效果不佳时请降低倍速。容量为原视频时长，待处理队列同步扩大；达到上限后等待消耗至约一半再继续，减少反复启停。加大容量不会加快识别服务。倍速和容量在开始前设置。</p>
 <p>前台字幕栏的「−0.5s / +0.5s」分别让字幕提前 / 延后显示，每次调整半秒，可重置；仅调整本次提前缓冲会话，范围为 ±30 秒。</p>
 <p id="status" role="status">准备就绪</p><progress id="progress" value="0" max="10"></progress><p id="preview"></p>
-<p>此模式增加视频解码和网络开销，不能弥补长期低于播放速度的识别性能。不支持直播、跨域 iframe、原生视频全屏字幕、独立广告时间轴及播放器替换。无法控制时请停止并使用实时听译。</p>
+<p>此模式增加视频解码和网络开销，不能弥补长期低于播放速度的识别性能。不支持直播、跨域 iframe、多个同等主播放器、原生视频全屏字幕、独立广告时间轴及播放器替换。无法控制时请停止并使用实时听译。</p>
 </main><script src="buffer.js"></script></body></html>

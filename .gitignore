@@ -3,5 +3,6 @@ dist/
 tests/artifacts/
 local-asr/.venv/
 local-asr/models/
+local-asr/whispercpp/
 __pycache__/
 *.pyc

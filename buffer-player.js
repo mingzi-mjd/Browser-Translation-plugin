@@ -3,12 +3,28 @@
   const api = globalThis.browser || globalThis.chrome;
   let session = null, selected = null, original = null, revision = 0, manualPause = false, commanded = false;
   const handlers = [];
+  function visibleArea(video) {
+    const rect = video.getBoundingClientRect();
+    const width = Math.min(rect.right, innerWidth) - Math.max(rect.left, 0);
+    const height = Math.min(rect.bottom, innerHeight) - Math.max(rect.top, 0);
+    return width > 0 && height > 0 ? width * height : 0;
+  }
+  function playbackScore(video) {
+    return visibleArea(video) * 100 + (video.readyState >= 3 ? 10 : 0) + (video.paused || video.ended ? 0 : 1);
+  }
   function pick() {
-    const videos = [...document.querySelectorAll("video")].filter(v => v.getBoundingClientRect().width > 80 && v.getBoundingClientRect().height > 40);
-    if (videos.length !== 1) throw new Error("提前缓冲仅支持顶层页面中单个可见的普通视频；不支持 iframe 或多个播放器");
-    const video = videos[0];
-    if (!Number.isFinite(video.duration) || video.duration <= 0 || !video.seekable.length) throw new Error("视频尚未就绪，或属于直播 / 不可跳转视频，请先手动播放片刻");
-    return video;
+    const visible = [...document.querySelectorAll("video")].filter(video => {
+      const rect = video.getBoundingClientRect();
+      if (rect.width <= 160 || rect.height <= 90) return false;
+      const style = getComputedStyle(video);
+      if (style.display === "none" || style.visibility === "hidden" || style.visibility === "collapse") return false;
+      if (style.opacity && Number(style.opacity) <= 0.01) return false;
+      return rect.bottom > 0 && rect.right > 0 && rect.top < innerHeight && rect.left < innerWidth;
+    });
+    if (!visible.length) throw new Error("未找到可见的普通视频；iframe 内视频请改用实时听译");
+    const playable = visible.filter(video => Number.isFinite(video.duration) && video.duration > 0 && video.seekable.length);
+    if (!playable.length) throw new Error("视频尚未就绪，或属于直播 / 不可跳转视频，请先手动播放片刻");
+    return playable.sort((a, b) => playbackScore(b) - playbackScore(a))[0];
   }
   function state() {
     if (!selected?.isConnected || selected.currentSrc !== original.src || location.href !== original.url) throw new Error("播放器或视频已改变，请重新建立缓冲");

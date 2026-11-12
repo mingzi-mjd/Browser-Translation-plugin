@@ -31,3 +31,12 @@ Only existing YouTube caption tracks are used by this implementation; KISS's aud
 - Playback, translation scheduling and UI are shared with this extension's video subtitle controller.
 
 GPL-3.0 text is included in LICENSE. Development dependencies have their own licenses and are not bundled into the extension.
+
+## Local speech recognition
+
+The optional `local-asr` service is not bundled into the extension. It uses
+[faster-whisper](https://github.com/SYSTRAN/faster-whisper) (MIT) for the
+CPU/NVIDIA backend and can use [whisper.cpp](https://github.com/ggml-org/whisper.cpp)
+(MIT) for the Vulkan backend. The Windows Vulkan package downloaded by
+`local-asr/install-whispercpp.ps1` is a third-party unsigned build and is kept
+out of version control; review its source and SHA256 before use.

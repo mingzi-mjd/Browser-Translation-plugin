@@ -38,12 +38,24 @@ $("show-floating").onclick = () => action("floating-show");
 
 $("open-text").onclick = async () => {
   try {
-    const result = await api.runtime.sendMessage({ type: "open-text-page" });
+    const [tab] = await api.tabs.query({ active: true, currentWindow: true });
+    const result = await api.runtime.sendMessage({ type: "open-text-page", windowId: tab?.windowId });
     if (!result?.ok) throw new Error(result?.error || "打开失败");
   } catch (error) { status(error.message, true); }
 };
 
-$("engine-settings").onclick = () => api.runtime.openOptionsPage().catch(() => status("无法打开引擎设置", true));
+$("engine-settings").onclick = async () => {
+  try {
+    const [tab] = await api.tabs.query({ active: true, currentWindow: true });
+    if (tab?.incognito && Number.isInteger(tab.windowId)) {
+      await api.tabs.create({ url: api.runtime.getURL("options.html"), windowId: tab.windowId });
+    } else {
+      await api.runtime.openOptionsPage();
+    }
+  } catch {
+    status("无法打开引擎设置", true);
+  }
+};
 $("open-listen").onclick = async () => {
   try {
     const [tab] = await api.tabs.query({ active: true, currentWindow: true });
